@@ -1,0 +1,28 @@
+{
+  "auth": "zef:lizmat",
+  "authors": [
+    "Elizabeth Mattijsen"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+  ],
+  "description": "look for lines containing a given needle",
+  "license": "Artistic-2.0",
+  "name": "Lines::Containing",
+  "perl": "6.d",
+  "provides": {
+    "Lines::Containing": "lib/Lines/Containing.rakumod"
+  },
+  "resources": [
+  ],
+  "source-url": "https://github.com/lizmat/Lines-Containing.git",
+  "tags": [
+    "LINES",
+    "GREP",
+    "CONTAINS"
+  ],
+  "test-depends": [
+  ],
+  "version": "0.0.1"
+}

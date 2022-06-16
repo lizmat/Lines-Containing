@@ -1,0 +1,28 @@
+use Test;
+use Lines::Containing;
+
+plan 6;
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", / r $/, :kv), (1, "bar"), 'ending on r';
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", "O", :p, :i), (0 => "foo",), 'with an O';
+
+is-deeply
+  lines-containing(1..100, / 0 $/), (10, 20...100), 'numbers ending on 0';
+
+is-deeply
+  lines-containing({:a<foo>, :b<bar>, :c<baz>}, *.starts-with("f"), :p),
+  (:a<foo>,),
+  'starting with f';
+
+is-deeply
+  lines-containing("foo\nbar", *.starts-with("b"), :k, :offset(1)),
+  (2,),
+  'line number of lines starting with "b", from 1';
+
+# vim: expandtab shiftwidth=4
