@@ -20,7 +20,7 @@ my class Contains does Containing {
           until (my $line := $iterator.pull-one) =:= IterationEnd
              || $line.contains($needle);
 
-        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr, $line)
+        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
     }
 }
 
@@ -38,7 +38,7 @@ my class Contains::im does Containing {
           until (my $line := $iterator.pull-one) =:= IterationEnd
              || $line.contains($needle, :$ignorecase, :$ignoremark);
 
-        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr, $line)
+        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
     }
 }
 
@@ -66,7 +66,7 @@ my class Contains::kv does Containing {
             }
             else {
                 $!line := $line;
-                $!linenr
+                $!linenr++
             }
         }
     }
@@ -84,7 +84,7 @@ my class Grep does Containing {
           until (my $line := $iterator.pull-one) =:= IterationEnd
              || lookup($line);
 
-        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr, $line)
+        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
     }
 }
 
@@ -110,7 +110,7 @@ my class Grep::kv does Containing {
             }
             else {
                 $!line := $line;
-                $!linenr
+                $!linenr++
             }
         }
     }

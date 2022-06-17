@@ -21,8 +21,8 @@ is-deeply
   'starting with f';
 
 is-deeply
-  lines-containing("foo\nbar", *.starts-with("b"), :k, :offset(1)),
-  (2,),
-  'line number of lines starting with "b", from 1';
+  lines-containing("foo\nbar\nbaz", *.starts-with("b"), :k, :offset(1)),
+  (2,3),
+  'line numbers of lines starting with "b", from 1';
 
 # vim: expandtab shiftwidth=4
