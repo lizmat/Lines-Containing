@@ -176,7 +176,7 @@ multi sub lines-containing(
     }
 }
 multi sub lines-containing(Any:D $source, Any:D $needle, *%_ --> Seq:D) {
-    lines-containing($source.lines.iterator, $needle, |%_)
+    lines-containing($source.lines(:enc<utf8-c8>).iterator, $needle, |%_)
 }
 
 =begin pod
