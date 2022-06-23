@@ -1,7 +1,7 @@
 use Test;
 use Lines::Containing;
 
-plan 6;
+plan 7;
 
 is-deeply
   lines-containing("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
@@ -24,5 +24,10 @@ is-deeply
   lines-containing("foo\nbar\nbaz", *.starts-with("b"), :k, :offset(1)),
   (2,3),
   'line numbers of lines starting with "b", from 1';
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", *.starts-with("b"), :k, :max-count(1)),
+  (1,),
+  'line numbers of lines starting with "b", up to 1';
 
 # vim: expandtab shiftwidth=4

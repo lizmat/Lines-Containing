@@ -2,12 +2,15 @@ Revision history for Lines-Containing
 
 {{$NEXT}}
 
+0.0.4  2022-06-23T11:30:04+02:00
+    - Add :max-count parameter to limit number of matches.
+
 0.0.3  2022-06-21T12:19:43+02:00
     - Make sure that lines uses the "utf8-c8" encoding to be more
       resilient to badly encoded text files.
 
 0.0.2  2022-06-17T13:39:35+02:00
-    - Fix issue with line numbers not getting incremented when found
+    - Fix issue with line numbers not getting incremented when found.
 
 0.0.1  2022-06-16T23:21:36+02:00
-    - Initial version
+    - Initial version.

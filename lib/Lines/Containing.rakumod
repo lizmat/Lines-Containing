@@ -130,9 +130,10 @@ multi sub lines-containing(
   Any:D      $needle,
   :$p, :$k, :$kv, :$v,
   :i(:$ignorecase), :m(:$ignoremark),
-  :offset($linenr) = 0
+  :offset($linenr) = 0,
+  :$max-count,
 --> Seq:D) {
-    Seq.new: Callable.ACCEPTS($needle) && !Regex.ACCEPTS($needle)
+    my $seq := Seq.new: Callable.ACCEPTS($needle) && !Regex.ACCEPTS($needle)
       ?? $kv
         ?? Grep::kv.new(
              :$iterator, :$needle, :$linenr
@@ -151,7 +152,8 @@ multi sub lines-containing(
              )
           !! Contains.new(
                :$iterator, :$needle, :produce(produce($p, $k)), :$linenr
-             )
+             );
+    $max-count.defined ?? $seq.head($max-count) !! $seq
 }
 multi sub lines-containing(Seq:D $seq, Any:D $needle, *%_ --> Seq:D) {
     lines-containing($seq.iterator, $needle, |%_)
