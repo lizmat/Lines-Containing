@@ -245,6 +245,11 @@ Ignore case (only if the needle is a C<Str>).
 
 Ignore mark (only if the needle is a C<Str>).
 
+=item :max-count
+
+Maximum number of matches that will be produced.  Defaults to C<Any>,
+which indicates that B<all> matches must be produced.
+
 =item :offset
 
 The line number of the first line in the source (defaults to B<0>).

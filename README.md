@@ -56,6 +56,10 @@ Ignore case (only if the needle is a `Str`).
 
 Ignore mark (only if the needle is a `Str`).
 
+  * :max-count
+
+Maximum number of matches that will be produced. Defaults to `Any`, which indicates that **all** matches must be produced.
+
   * :offset
 
 The line number of the first line in the source (defaults to **0**).
