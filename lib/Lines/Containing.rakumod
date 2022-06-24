@@ -126,12 +126,16 @@ my sub produce($p, $k) {
 
 proto sub lines-containing(|) is export {*}
 multi sub lines-containing(
-  Iterator:D $iterator,
-  Any:D      $needle,
-  :$p, :$k, :$kv, :$v,
-  :i(:$ignorecase), :m(:$ignoremark),
-  :offset($linenr) = 0,
-  :$max-count,
+  Iterator:D  $iterator,
+       Any:D  $needle,
+             :$p,
+             :$k,
+             :$kv,
+             :$v,
+             :i(:$ignorecase),
+             :m(:$ignoremark),
+             :offset($linenr) = 0,
+             :$max-count,
 --> Seq:D) {
     my $seq := Seq.new: Callable.ACCEPTS($needle) && !Regex.ACCEPTS($needle)
       ?? $kv
@@ -153,6 +157,7 @@ multi sub lines-containing(
           !! Contains.new(
                :$iterator, :$needle, :produce(produce($p, $k)), :$linenr
              );
+
     $max-count.defined ?? $seq.head($max-count) !! $seq
 }
 multi sub lines-containing(Seq:D $seq, Any:D $needle, *%_ --> Seq:D) {
