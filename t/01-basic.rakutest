@@ -1,7 +1,7 @@
 use Test;
 use Lines::Containing;
 
-plan 7;
+plan 10;
 
 is-deeply
   lines-containing("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
@@ -29,5 +29,20 @@ is-deeply
   lines-containing("foo\nbar\nbaz", *.starts-with("b"), :k, :max-count(1)),
   (1,),
   'line numbers of lines starting with "b", up to 1';
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", 'zippo', :invert-match),
+  <foo bar baz>,
+  'All line looking for non-existing with inverted match';
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", 'bar', :invert-match),
+  <foo baz>,
+  'All line looking for non-existing with inverted match';
+
+is-deeply
+  lines-containing("foo\nbar\nbaz", / \w+ /, :invert-match),
+  (),
+  'No lines looking for words with inverted match';
 
 # vim: expandtab shiftwidth=4

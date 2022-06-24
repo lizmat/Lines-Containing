@@ -1,31 +1,33 @@
 my role Containing does Iterator {
-    has Iterator $!iterator   is built;
-    has Any      $!needle     is built;
-    has          $!ignorecase is built;
-    has          $!ignoremark is built;
+    has Iterator $!iterator   is built(:bind);
+    has Any      $!needle     is built(:bind);
+    has          $!target     is built(:bind);
+    has          $!ignorecase is built(:bind);
+    has          $!ignoremark is built(:bind);
 #    has int      $!linenr  is built;  # XXX natives don't work in roles
 
     method is-lazy() { $!iterator.is-lazy }
 }
 
 my class Contains does Containing {
-    has Callable $!produce is built;
+    has Callable $!produce is built(:bind);
     has int      $!linenr  is built;
 
     method pull-one() {
         my $iterator := $!iterator;
         my $needle   := $!needle;
+        my $target   := $!target;
 
         ++$!linenr
           until (my $line := $iterator.pull-one) =:= IterationEnd
-             || $line.contains($needle);
+             || $line.contains($needle) =:= $target;
 
         $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
     }
 }
 
 my class Contains::im does Containing {
-    has Callable $!produce is built;
+    has Callable $!produce is built(:bind);
     has int      $!linenr  is built;
 
     method pull-one() {
@@ -33,10 +35,11 @@ my class Contains::im does Containing {
         my $needle     := $!needle;
         my $ignorecase := $!ignorecase;
         my $ignoremark := $!ignoremark;
+        my $target     := $!target;
 
         ++$!linenr
           until (my $line := $iterator.pull-one) =:= IterationEnd
-             || $line.contains($needle, :$ignorecase, :$ignoremark);
+           || $line.contains($needle,:$ignorecase,:$ignoremark) =:= $target;
 
         $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
     }
@@ -51,6 +54,7 @@ my class Contains::kv does Containing {
         my $needle     := $!needle;
         my $ignorecase := $!ignorecase;
         my $ignoremark := $!ignoremark;
+        my $target     := $!target;
 
         with $!line -> $line {
             $!line := Str;
@@ -59,7 +63,7 @@ my class Contains::kv does Containing {
         else {
             ++$!linenr
               until (my $line := $iterator.pull-one) =:= IterationEnd
-                 || $line.contains($needle, :$ignorecase, :$ignoremark);
+               || $line.contains($needle,:$ignorecase,:$ignoremark) =:= $target;
 
             if $line =:= IterationEnd {
                 IterationEnd
@@ -73,16 +77,17 @@ my class Contains::kv does Containing {
 }
 
 my class Grep does Containing {
-    has Callable $!produce is built;
+    has Callable $!produce is built(:bind);
     has int      $!linenr  is built;
 
     method pull-one() {
         my $iterator := $!iterator;
         my &lookup   := $!needle;
+        my $target   := $!target;
 
         ++$!linenr
           until (my $line := $iterator.pull-one) =:= IterationEnd
-             || lookup($line);
+             || lookup($line).Bool =:= $target;
 
         $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
     }
@@ -95,6 +100,7 @@ my class Grep::kv does Containing {
     method pull-one() {
         my $iterator := $!iterator;
         my &lookup   := $!needle;
+        my $target   := $!target;
 
         with $!line -> $line {
             $!line := Str;
@@ -103,7 +109,7 @@ my class Grep::kv does Containing {
         else {
             ++$!linenr
               until (my $line := $iterator.pull-one) =:= IterationEnd
-                 || lookup($line);
+                 || lookup($line).Bool =:= $target;
 
             if $line =:= IterationEnd {
                 IterationEnd
@@ -114,6 +120,10 @@ my class Grep::kv does Containing {
             }
         }
     }
+}
+
+my sub is-simple-Callable($needle) {
+    Callable.ACCEPTS($needle) && !Regex.ACCEPTS($needle)
 }
 
 my sub produce($p, $k) {
@@ -134,28 +144,36 @@ multi sub lines-containing(
              :$v,
              :i(:$ignorecase),
              :m(:$ignoremark),
+             :$invert-match,
              :offset($linenr) = 0,
              :$max-count,
 --> Seq:D) {
-    my $seq := Seq.new: Callable.ACCEPTS($needle) && !Regex.ACCEPTS($needle)
+    my $target := !$invert-match;
+    my $seq := Seq.new: is-simple-Callable($needle)
       ?? $kv
         ?? Grep::kv.new(
-             :$iterator, :$needle, :$linenr
+             :$iterator, :$needle,
+             :$linenr, :$target
            )
         !! Grep.new(
-             :$iterator, :$needle, :produce(produce($p, $k)), :$linenr
+             :$iterator, :$needle,
+             :produce(produce($p, $k)), :$linenr, :$target
            )
       !! $kv
         ?? Contains::kv.new(
-             :$iterator, :$needle, :$ignorecase, :$ignoremark, :$linenr
+             :$iterator, :$needle,
+             :$linenr, :$target
+             :$ignorecase, :$ignoremark,
            )
         !! $ignorecase || $ignoremark
           ?? Contains::im.new(
-               :$iterator, :$needle, :produce(produce($p, $k)), :$linenr
+               :$iterator, :$needle,
+               :produce(produce($p, $k)), :$linenr, :$target
                :$ignorecase, :$ignoremark
              )
           !! Contains.new(
-               :$iterator, :$needle, :produce(produce($p, $k)), :$linenr
+               :$iterator, :$needle,
+               :produce(produce($p, $k)), :$linenr, :$target
              );
 
     $max-count.defined ?? $seq.head($max-count) !! $seq
@@ -167,18 +185,20 @@ multi sub lines-containing(@lines, Any:D $needle, *%_ --> Seq:D) {
     lines-containing(@lines.iterator, $needle, |%_)
 }
 multi sub lines-containing(
-        %map,
-  Any:D $needle,
-  :$p, :$k, :$kv, :$v, :i(:$ignorecase), :m(:$ignoremark), :$offset = 0
+         %map,
+  Any:D  $needle,
+        :$p,
+        :$kv,
+        :$k,
+        :$v,
+        *%_
 --> Seq:D) {
     my &producer := produce($p, $k);
 
     # NOTE: this depends on a hash producing keys and values in the
     # same order if the hash is unchanged
     my @keys = %map.keys;
-    lines-containing(
-      %map.values.iterator, $needle, :p, :$ignorecase, :$ignoremark, :$offset
-    ).map: {
+    lines-containing(%map.values.iterator, $needle, :p, |%_).map: {
         producer @keys.AT-POS(.key), .value
     }
 }
@@ -245,6 +265,10 @@ Produce lines only.
 =item :i or :ignorecase
 
 Ignore case (only if the needle is a C<Str>).
+
+=item :invert-match
+
+Only produce lines that do B<NOT> match.
 
 =item :m or :ignoremark
 

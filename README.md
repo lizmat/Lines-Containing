@@ -52,6 +52,10 @@ Produce lines only.
 
 Ignore case (only if the needle is a `Str`).
 
+  * :invert-match
+
+Only produce lines that do **NOT** match.
+
   * :m or :ignoremark
 
 Ignore mark (only if the needle is a `Str`).
