@@ -87,9 +87,16 @@ my class Grep does Containing {
 
         ++$!linenr
           until (my $line := $iterator.pull-one) =:= IterationEnd
-             || lookup($line).Bool =:= $target;
+             || (my $result := lookup($line)) =:= $target
+             || $result =:= Empty
+             || !Bool.ACCEPTS($result);
 
-        $line =:= IterationEnd ?? IterationEnd !! $!produce($!linenr++, $line)
+        $line =:= IterationEnd
+          ?? IterationEnd
+          !! $!produce(
+               $!linenr++,
+               $result =:= Empty || Bool.ACCEPTS($result) ?? $line !! $result
+             )
     }
 }
 
@@ -109,13 +116,17 @@ my class Grep::kv does Containing {
         else {
             ++$!linenr
               until (my $line := $iterator.pull-one) =:= IterationEnd
-                 || lookup($line).Bool =:= $target;
+                 || (my $result := lookup($line)) =:= $target
+                 || $result =:= Empty
+                 || !Bool.ACCEPTS($result);
 
             if $line =:= IterationEnd {
                 IterationEnd
             }
             else {
-                $!line := $line;
+                $!line := $result =:= Empty || Bool.ACCEPTS($result)
+                  ?? $line
+                  !! $result;
                 $!linenr++
             }
         }
@@ -242,6 +253,21 @@ expression, or a C<Callable> as the needle to search for.
 
 It returns a (potentially lazy) C<Seq> of the lines that contained the
 needle.
+
+If a C<Callable> was specified as the second parameter, then the following
+rules apply:
+
+=item if Bool was returned
+
+Produce if C<True>, or if C<:invert-match> is specified, if C<False>.
+
+=item if Empty was returned
+
+Always produce the original line.
+
+=item anything else
+
+Produce whatever was returned by the C<Callable> otherwise.
 
 Additionally, it supports the following named arguments:
 

@@ -1,7 +1,7 @@
 use Test;
 use Lines::Containing;
 
-plan 10;
+plan 12;
 
 is-deeply
   lines-containing("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
@@ -44,5 +44,15 @@ is-deeply
   lines-containing("foo\nbar\nbaz", / \w+ /, :invert-match),
   (),
   'No lines looking for words with inverted match';
+
+is-deeply
+  lines-containing("foo\nbar\n\nbaz", *.uc),
+  ('FOO', 'BAR', '', 'BAZ'),
+  'use matching for adaptation';
+
+is-deeply
+  lines-containing("foo\nbar\n\nbaz", { .uc if .contains("a") }),
+  ('foo', 'BAR', '', 'BAZ'),
+  'use matching for adaptation not touching Empty result';
 
 # vim: expandtab shiftwidth=4

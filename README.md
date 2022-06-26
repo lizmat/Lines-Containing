@@ -30,6 +30,20 @@ As the second parameter, it takes either a `Cool` object, a regular expression, 
 
 It returns a (potentially lazy) `Seq` of the lines that contained the needle.
 
+If a `Callable` was specified as the second parameter, then the following rules apply:
+
+  * if Bool was returned
+
+Produce if `True`, or if `:invert-match` is specified, if `False`.
+
+  * if Empty was returned
+
+Always produce the original line.
+
+  * anything else
+
+Produce whatever was returned by the `Callable` otherwise.
+
 Additionally, it supports the following named arguments:
 
   * :p
