@@ -152,47 +152,77 @@ multi sub lines-containing(
              :$p,
              :$k,
              :$kv,
-             :$v,
+             :v($),
              :i(:$ignorecase),
              :m(:$ignoremark),
              :$invert-match,
              :offset($linenr) = 0,
              :$max-count,
---> Seq:D) {
+             :$count,
+) {
     my $target := !$invert-match;
-    my $seq := Seq.new: is-simple-Callable($needle)
-      ?? $kv
-        ?? Grep::kv.new(
-             :$iterator, :$needle,
-             :$linenr, :$target
-           )
-        !! Grep.new(
-             :$iterator, :$needle,
-             :produce(produce($p, $k)), :$linenr, :$target
-           )
-      !! $kv
-        ?? Contains::kv.new(
-             :$iterator, :$needle,
-             :$linenr, :$target
-             :$ignorecase, :$ignoremark,
-           )
-        !! $ignorecase || $ignoremark
-          ?? Contains::im.new(
-               :$iterator, :$needle,
-               :produce(produce($p, $k)), :$linenr, :$target
-               :$ignorecase, :$ignoremark
-             )
-          !! Contains.new(
-               :$iterator, :$needle,
-               :produce(produce($p, $k)), :$linenr, :$target
-             );
 
-    $max-count.defined ?? $seq.head($max-count) !! $seq
+    # Only want to know number of lines with needle
+    if $count {
+        my $produce := produce(False, True);
+        my $counter := is-simple-Callable($needle)
+          ?? Grep.new(:$iterator, :$needle, :$produce, :$linenr, :$target)
+          !! $ignorecase || $ignoremark
+            ?? Contains::im.new(
+                 :$iterator, :$needle, :$produce, :$linenr, :$target,
+                 :$ignorecase, :$ignoremark
+             )
+            !! Contains.new(
+                 :$iterator, :$needle, :$produce, :$linenr, :$target
+               );
+        my int $count;
+        if $max-count {
+            ++$count
+              until $counter.pull-one =:= IterationEnd || $count == $max-count;
+        }
+        else {
+            ++$count
+              until $counter.pull-one =:= IterationEnd;
+        }
+        $count
+    }
+
+    # Want to know the actual lines
+    else {
+        my $seq := Seq.new: is-simple-Callable($needle)
+          ?? $kv
+            ?? Grep::kv.new(
+                 :$iterator, :$needle,
+                 :$linenr, :$target
+               )
+            !! Grep.new(
+                 :$iterator, :$needle,
+                 :produce(produce($p, $k)), :$linenr, :$target
+               )
+          !! $kv
+            ?? Contains::kv.new(
+                 :$iterator, :$needle,
+                 :$linenr, :$target
+                 :$ignorecase, :$ignoremark,
+               )
+            !! $ignorecase || $ignoremark
+              ?? Contains::im.new(
+                   :$iterator, :$needle,
+                   :produce(produce($p, $k)), :$linenr, :$target,
+                   :$ignorecase, :$ignoremark
+                 )
+              !! Contains.new(
+                   :$iterator, :$needle,
+                   :produce(produce($p, $k)), :$linenr, :$target
+                 );
+
+        $max-count.defined ?? $seq.head($max-count) !! $seq
+    }
 }
-multi sub lines-containing(Seq:D $seq, Any:D $needle, *%_ --> Seq:D) {
+multi sub lines-containing(Seq:D $seq, Any:D $needle, *%_) {
     lines-containing($seq.iterator, $needle, |%_)
 }
-multi sub lines-containing(@lines, Any:D $needle, *%_ --> Seq:D) {
+multi sub lines-containing(@lines, Any:D $needle, *%_) {
     lines-containing(@lines.iterator, $needle, |%_)
 }
 multi sub lines-containing(
@@ -201,19 +231,27 @@ multi sub lines-containing(
         :$p,
         :$kv,
         :$k,
-        :$v,
+        :v($),
+        :$count,
         *%_
---> Seq:D) {
-    my &producer := produce($p, $k);
+) {
+    if $count {
+        my int $count;
+        ++$count for lines-containing(%map.values.iterator, $needle, :k, |%_);
+        $count
+    }
+    else {
+        my &producer := produce($p, $k);
 
-    # NOTE: this depends on a hash producing keys and values in the
-    # same order if the hash is unchanged
-    my @keys = %map.keys;
-    lines-containing(%map.values.iterator, $needle, :p, |%_).map: {
-        producer @keys.AT-POS(.key), .value
+        # NOTE: this depends on a hash producing keys and values in the
+        # same order if the hash is unchanged
+        my @keys = %map.keys;
+        lines-containing(%map.values.iterator, $needle, :p, |%_).map: {
+            producer @keys.AT-POS(.key), .value
+        }
     }
 }
-multi sub lines-containing(Any:D $source, Any:D $needle, *%_ --> Seq:D) {
+multi sub lines-containing(Any:D $source, Any:D $needle, *%_) {
     lines-containing($source.lines(:enc<utf8-c8>).iterator, $needle, |%_)
 }
 
@@ -237,6 +275,9 @@ use Lines::Containing;
 
 # line numbers of lines starting with "f", starting at 1
 .say for lines-containing("foo\nbar", *.starts-with("b"), :k, :offset(1));  # 2␤
+
+# number of lines starting with "b", with their line number
+.say for lines-containing("foo\nbar\nbaz", *.starts-with("b"), :count);  # 2␤
 
 =end code
 
@@ -271,10 +312,9 @@ Produce whatever was returned by the C<Callable> otherwise.
 
 Additionally, it supports the following named arguments:
 
-=item :p
+=item :count
 
-Produce C<Pair>s with the line number (or the key in case of a C<Hash>) as
-the key.
+Only produce a count of lines that have a match.
 
 =item :k
 
@@ -283,10 +323,6 @@ Produce line numbers only, or keys only in case of a C<Hash>.
 =item :kv
 
 Produce line number (or key in case of a C<Hash>) and line alternately.
-
-=item :v (default)
-
-Produce lines only.
 
 =item :i or :ignorecase
 
@@ -308,6 +344,15 @@ which indicates that B<all> matches must be produced.
 =item :offset
 
 The line number of the first line in the source (defaults to B<0>).
+
+=item :p
+
+Produce C<Pair>s with the line number (or the key in case of a C<Hash>) as
+the key.
+
+=item :v (default)
+
+Produce lines only.
 
 =head1 AUTHOR
 

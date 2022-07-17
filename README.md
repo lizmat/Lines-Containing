@@ -19,6 +19,9 @@ use Lines::Containing;
 
 # line numbers of lines starting with "f", starting at 1
 .say for lines-containing("foo\nbar", *.starts-with("b"), :k, :offset(1));  # 2␤
+
+# number of lines starting with "b", with their line number
+.say for lines-containing("foo\nbar\nbaz", *.starts-with("b"), :count);  # 2␤
 ```
 
 DESCRIPTION
@@ -46,9 +49,9 @@ Produce whatever was returned by the `Callable` otherwise.
 
 Additionally, it supports the following named arguments:
 
-  * :p
+  * :count
 
-Produce `Pair`s with the line number (or the key in case of a `Hash`) as the key.
+Only produce a count of lines that have a match.
 
   * :k
 
@@ -57,10 +60,6 @@ Produce line numbers only, or keys only in case of a `Hash`.
   * :kv
 
 Produce line number (or key in case of a `Hash`) and line alternately.
-
-  * :v (default)
-
-Produce lines only.
 
   * :i or :ignorecase
 
@@ -81,6 +80,14 @@ Maximum number of matches that will be produced. Defaults to `Any`, which indica
   * :offset
 
 The line number of the first line in the source (defaults to **0**).
+
+  * :p
+
+Produce `Pair`s with the line number (or the key in case of a `Hash`) as the key.
+
+  * :v (default)
+
+Produce lines only.
 
 AUTHOR
 ======

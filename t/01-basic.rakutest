@@ -1,57 +1,47 @@
 use Test;
 use Lines::Containing;
 
-plan 12;
+plan 24;
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
+sub test(\c, $expected, $comment, $count = $expected.elems) is test-assertion {
+    is-deeply lines-containing(|c), $expected, $comment;
+    is lines-containing(|c, :count), $count, "$comment (count)";
+}
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", / r $/, :kv), (1, "bar"), 'ending on r';
+test \("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
+test \("foo\nbar\nbaz", / r $/, :kv), (1, "bar"), 'ending on r', 1;
+test \("foo\nbar\nbaz", "O", :p, :i), (0 => "foo",), 'with an O';
+test \(1..100, / 0 $/), (10, 20...100), 'numbers ending on 0';
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", "O", :p, :i), (0 => "foo",), 'with an O';
+test \({:a<foo>, :b<bar>, :c<baz>},
+  *.starts-with("f"), :p),
+  (:a<foo>,), 'starting with f';
 
-is-deeply
-  lines-containing(1..100, / 0 $/), (10, 20...100), 'numbers ending on 0';
-
-is-deeply
-  lines-containing({:a<foo>, :b<bar>, :c<baz>}, *.starts-with("f"), :p),
-  (:a<foo>,),
-  'starting with f';
-
-is-deeply
-  lines-containing("foo\nbar\nbaz", *.starts-with("b"), :k, :offset(1)),
+test \("foo\nbar\nbaz", *.starts-with("b"), :k, :offset(1)),
   (2,3),
   'line numbers of lines starting with "b", from 1';
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", *.starts-with("b"), :k, :max-count(1)),
+test \("foo\nbar\nbaz", *.starts-with("b"), :k, :max-count(1)),
   (1,),
   'line numbers of lines starting with "b", up to 1';
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", 'zippo', :invert-match),
+test \("foo\nbar\nbaz", 'zippo', :invert-match),
   <foo bar baz>,
   'All line looking for non-existing with inverted match';
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", 'bar', :invert-match),
+test \("foo\nbar\nbaz", 'bar', :invert-match),
   <foo baz>,
   'All line looking for non-existing with inverted match';
 
-is-deeply
-  lines-containing("foo\nbar\nbaz", / \w+ /, :invert-match),
+test \("foo\nbar\nbaz", / \w+ /, :invert-match),
   (),
   'No lines looking for words with inverted match';
 
-is-deeply
-  lines-containing("foo\nbar\n\nbaz", *.uc),
+test \("foo\nbar\n\nbaz", *.uc),
   ('FOO', 'BAR', '', 'BAZ'),
   'use matching for adaptation';
 
-is-deeply
-  lines-containing("foo\nbar\n\nbaz", { .uc if .contains("a") }),
+test \("foo\nbar\n\nbaz", { .uc if .contains("a") }),
   ('foo', 'BAR', '', 'BAZ'),
   'use matching for adaptation not touching Empty result';
 

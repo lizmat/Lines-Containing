@@ -2,6 +2,9 @@ Revision history for Lines-Containing
 
 {{$NEXT}}
 
+0.0.7  2022-07-17T21:45:56+02:00
+    - Add :count parameter to just produce count of matching lines
+
 0.0.6  2022-06-26T16:21:50+02:00
     - Change the semantics of Callable as a needle.  Unchanged if
       the returned value is a Bool.  Always produce original line
