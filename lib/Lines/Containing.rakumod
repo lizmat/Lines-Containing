@@ -158,12 +158,12 @@ multi sub lines-containing(
              :$invert-match,
              :offset($linenr) = 0,
              :$max-count,
-             :$count,
+             :$count-only,
 ) {
     my $target := !$invert-match;
 
     # Only want to know number of lines with needle
-    if $count {
+    if $count-only {
         my $produce := produce(False, True);
         my $counter := is-simple-Callable($needle)
           ?? Grep.new(:$iterator, :$needle, :$produce, :$linenr, :$target)
@@ -232,10 +232,10 @@ multi sub lines-containing(
         :$kv,
         :$k,
         :v($),
-        :$count,
+        :$count-only,
         *%_
 ) {
-    if $count {
+    if $count-only {
         my int $count;
         ++$count for lines-containing(%map.values.iterator, $needle, :k, |%_);
         $count
@@ -277,7 +277,7 @@ use Lines::Containing;
 .say for lines-containing("foo\nbar", *.starts-with("b"), :k, :offset(1));  # 2␤
 
 # number of lines starting with "b", with their line number
-.say for lines-containing("foo\nbar\nbaz", *.starts-with("b"), :count);  # 2␤
+.say for lines-containing("foo\nbar\nbaz", *.starts-with("b"), :count-only);  # 2␤
 
 =end code
 
@@ -312,7 +312,7 @@ Produce whatever was returned by the C<Callable> otherwise.
 
 Additionally, it supports the following named arguments:
 
-=item :count
+=item :count-only
 
 Only produce a count of lines that have a match.
 

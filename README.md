@@ -21,7 +21,7 @@ use Lines::Containing;
 .say for lines-containing("foo\nbar", *.starts-with("b"), :k, :offset(1));  # 2␤
 
 # number of lines starting with "b", with their line number
-.say for lines-containing("foo\nbar\nbaz", *.starts-with("b"), :count);  # 2␤
+.say for lines-containing("foo\nbar\nbaz", *.starts-with("b"), :count-only);  # 2␤
 ```
 
 DESCRIPTION
@@ -49,7 +49,7 @@ Produce whatever was returned by the `Callable` otherwise.
 
 Additionally, it supports the following named arguments:
 
-  * :count
+  * :count-only
 
 Only produce a count of lines that have a match.
 

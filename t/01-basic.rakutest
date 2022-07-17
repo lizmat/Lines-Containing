@@ -5,7 +5,7 @@ plan 24;
 
 sub test(\c, $expected, $comment, $count = $expected.elems) is test-assertion {
     is-deeply lines-containing(|c), $expected, $comment;
-    is lines-containing(|c, :count), $count, "$comment (count)";
+    is lines-containing(|c, :count-only), $count, "$comment (count-only)";
 }
 
 test \("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';

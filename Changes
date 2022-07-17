@@ -2,6 +2,9 @@ Revision history for Lines-Containing
 
 {{$NEXT}}
 
+0.0.8  2022-07-17T22:32:21+02:00
+    - Rename :count to :count-only for more implicit documentation
+
 0.0.7  2022-07-17T21:45:56+02:00
     - Add :count parameter to just produce count of matching lines
 
