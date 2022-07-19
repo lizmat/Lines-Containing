@@ -1,3 +1,5 @@
+use has-word:ver<0.0.3>:auth<zef:lizmat>;
+
 my role Containing does Iterator {
     has Iterator $!iterator   is built(:bind);
     has Any      $!needle     is built(:bind);
@@ -251,8 +253,20 @@ multi sub lines-containing(
         }
     }
 }
-multi sub lines-containing(Any:D $source, Any:D $needle, *%_) {
-    lines-containing($source.lines(:enc<utf8-c8>).iterator, $needle, |%_)
+multi sub lines-containing(Any:D $source, Any:D $needle, :$type, *%_) {
+    lines-containing(
+      $source.lines(:enc<utf8-c8>).iterator,
+      !$type || $type eq 'contains'
+        ?? $needle
+        !! $type eq 'words'
+          ?? { has-word $_, $needle }
+          !! $type eq 'starts-with'
+            ?? *.starts-with($needle)
+            !! $type eq 'ends-with'
+              ?? *.ends-with($needle)
+              !! (die "Unrecognized type: $type"),
+      |%_
+    )
 }
 
 =begin pod
@@ -336,12 +350,12 @@ Only produce lines that do B<NOT> match.
 
 Ignore mark (only if the needle is a C<Str>).
 
-=item :max-count
+=item :max-count=N
 
 Maximum number of matches that will be produced.  Defaults to C<Any>,
 which indicates that B<all> matches must be produced.
 
-=item :offset
+=item :offset=N
 
 The line number of the first line in the source (defaults to B<0>).
 
@@ -349,6 +363,14 @@ The line number of the first line in the source (defaults to B<0>).
 
 Produce C<Pair>s with the line number (or the key in case of a C<Hash>) as
 the key.
+
+=item :type=words|starts-with|ends-with|contains
+
+Only makes sense if the needle is a C<Cool> object.  With C<words>
+specified, will look for needle as a word in a line, with C<starts-with>
+will look for the needle at the beginning of a line, with C<ends-with>
+will look for the needle at the end of a line, with C<contains> will
+look for the needle at any position in a line.  Which is the default.
 
 =item :v (default)
 

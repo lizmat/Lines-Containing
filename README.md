@@ -73,17 +73,21 @@ Only produce lines that do **NOT** match.
 
 Ignore mark (only if the needle is a `Str`).
 
-  * :max-count
+  * :max-count=N
 
 Maximum number of matches that will be produced. Defaults to `Any`, which indicates that **all** matches must be produced.
 
-  * :offset
+  * :offset=N
 
 The line number of the first line in the source (defaults to **0**).
 
   * :p
 
 Produce `Pair`s with the line number (or the key in case of a `Hash`) as the key.
+
+  * :type=words|starts-with|ends-with|contains
+
+Only makes sense if the needle is a `Cool` object. With `words` specified, will look for needle as a word in a line, with `starts-with` will look for the needle at the beginning of a line, with `ends-with` will look for the needle at the end of a line, with `contains` will look for the needle at any position in a line. Which is the default.
 
   * :v (default)
 

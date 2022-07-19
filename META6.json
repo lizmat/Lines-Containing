@@ -6,6 +6,7 @@
   "build-depends": [
   ],
   "depends": [
+    "has-word:ver<0.0.3>:auth<zef:lizmat>"
   ],
   "description": "look for lines containing a given needle",
   "license": "Artistic-2.0",
@@ -26,5 +27,5 @@
   ],
   "test-depends": [
   ],
-  "version": "0.0.8"
+  "version": "0.0.9"
 }

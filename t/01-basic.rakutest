@@ -1,7 +1,7 @@
 use Test;
 use Lines::Containing;
 
-plan 24;
+plan 32;
 
 sub test(\c, $expected, $comment, $count = $expected.elems) is test-assertion {
     is-deeply lines-containing(|c), $expected, $comment;
@@ -9,6 +9,19 @@ sub test(\c, $expected, $comment, $count = $expected.elems) is test-assertion {
 }
 
 test \("foo\nbar\nbaz", "a"), <bar baz>, 'with an a';
+test \("foo\nbar\nbaz", "a", :type<contains>),
+  <bar baz>,
+  'with an a and :type<contains>';
+test \("foo\nbar\nbaz", "bar", :type<words>),
+  ("bar",),
+  'with a bar and :type<words>';
+test \("foo\nbar\nbaz", "ba", :type<starts-with>),
+  <bar baz>,
+  'with a ba and :type<starts-with>';
+test \("foo\nbar\nbaz", "ar", :type<ends-with>),
+  ("bar",),
+  'with a ar and :type<ends-with>';
+
 test \("foo\nbar\nbaz", / r $/, :kv), (1, "bar"), 'ending on r', 1;
 test \("foo\nbar\nbaz", "O", :p, :i), (0 => "foo",), 'with an O';
 test \(1..100, / 0 $/), (10, 20...100), 'numbers ending on 0';
