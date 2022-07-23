@@ -27,7 +27,15 @@ use Lines::Containing;
 DESCRIPTION
 ===========
 
-Lines::Containing exports a single subroutine `lines-containing` that can either take a `Seq` or `Iterator` producing lines, an array with lines, a `Hash` (or `Map`) with lines as values, or any other object that supports a `lines` method producing lines (such as `Str`, `IO::Path`, `IO::Handle`, `Supply`) as the source to check.
+Lines::Containing provides a single subroutine `lines-containing` that allows searching for a string in an object that can produce something akin to lines of text.
+
+EXPORTED SUBROUTINES
+====================
+
+lines-containing
+----------------
+
+The `lines-containing` subroutine can either take a `Seq` or `Iterator` producing lines, an array with lines, a `Hash` (or `Map`) with lines as values, or any other object that supports a `lines` method producing lines (such as `Str`, `IO::Path`, `IO::Handle`, `Supply`) as the source to check.
 
 As the second parameter, it takes either a `Cool` object, a regular expression, or a `Callable` as the needle to search for.
 
@@ -92,6 +100,11 @@ Only makes sense if the needle is a `Cool` object. With `words` specified, will 
   * :v (default)
 
 Produce lines only.
+
+has-word
+--------
+
+The `has-word` subroutine, as provided by the version of [has-word](https://raku.land/zef:lizmat/has-word) that is used.
 
 AUTHOR
 ======

@@ -1,7 +1,10 @@
 use Test;
 use Lines::Containing;
 
-plan 32;
+plan 34;
+
+ok ::('&' ~ $_) ~~ Callable, "is $_ exported?"
+  for <lines-containing has-word>;
 
 sub test(\c, $expected, $comment, $count = $expected.elems) is test-assertion {
     is-deeply lines-containing(|c), $expected, $comment;

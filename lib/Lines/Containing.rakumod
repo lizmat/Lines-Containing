@@ -147,7 +147,7 @@ my sub produce($p, $k) {
         !! -> $, $line { $line }
 }
 
-proto sub lines-containing(|) is export {*}
+proto sub lines-containing(|) {*}
 multi sub lines-containing(
   Iterator:D  $iterator,
        Any:D  $needle,
@@ -269,6 +269,13 @@ multi sub lines-containing(Any:D $source, Any:D $needle, :$type, *%_) {
     )
 }
 
+sub EXPORT() {
+    Map.new: (
+      '&lines-containing' => &lines-containing,
+      '&has-word'         => &has-word,
+    )
+}
+
 =begin pod
 
 =head1 NAME
@@ -297,11 +304,19 @@ use Lines::Containing;
 
 =head1 DESCRIPTION
 
-Lines::Containing exports a single subroutine C<lines-containing> that can
-either take a C<Seq> or C<Iterator> producing lines, an array with lines,
-a C<Hash> (or C<Map>) with lines as values, or any other object that supports
-a C<lines> method producing lines (such as C<Str>, C<IO::Path>, C<IO::Handle>,
-C<Supply>) as the source to check.
+Lines::Containing provides a single subroutine C<lines-containing> that
+allows searching for a string in an object that can produce something
+akin to lines of text.
+
+=head1 EXPORTED SUBROUTINES
+
+=head2 lines-containing
+
+The C<lines-containing> subroutine can either take a C<Seq> or C<Iterator>
+producing lines, an array with lines, a C<Hash> (or C<Map>) with lines as
+values, or any other object that supports a C<lines> method producing
+lines (such as C<Str>, C<IO::Path>, C<IO::Handle>, C<Supply>) as the
+source to check.
 
 As the second parameter, it takes either a C<Cool> object, a regular
 expression, or a C<Callable> as the needle to search for.
@@ -375,6 +390,11 @@ look for the needle at any position in a line.  Which is the default.
 =item :v (default)
 
 Produce lines only.
+
+=head2 has-word
+
+The C<has-word> subroutine, as provided by the version of
+L<has-word|https://raku.land/zef:lizmat/has-word> that is used.
 
 =head1 AUTHOR
 
