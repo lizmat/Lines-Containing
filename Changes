@@ -1,6 +1,8 @@
 Revision history for Lines-Containing
 
 {{$NEXT}}
+    - Add CI badge for each OS
+    - Update copyright year
 
 0.0.10  2022-07-23T21:22:17+02:00
     - Also re-export the "has-word" sub that is being used.

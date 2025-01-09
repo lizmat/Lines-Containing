@@ -1,4 +1,4 @@
-use has-word:ver<0.0.3>:auth<zef:lizmat>;
+use has-word:ver<0.0.6+>:auth<zef:lizmat>;
 
 my role Containing does Iterator {
     has Iterator $!iterator   is built(:bind);
